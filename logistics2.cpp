@@ -20,6 +20,7 @@ Logistics::Logistics(const SizeOptions & opt):
 
     int n_type1_max = max_carrier;
     int n_type2_max = max_carrier*0.2;
+    int total_max = n_type1_max + n_type2_max;
 
     //initialize the items(cars)
 
@@ -65,9 +66,9 @@ Logistics::Logistics(const SizeOptions & opt):
 
 
     //initialization of decision variables
-    assigned_carrier = BoolVarArray(*this, n_type1_max+n_type2_max,0,1);  //s_k ; dimension k
-    assigned_carrier_set = SetVar(*this, IntSet::empty, 0, n_type1_max + n_type2_max - 1);
-    cars = BoolVarArray(*this, n_cars*2*(n_type1_max+n_type2_max),0,1); //x_ijk, use slice to access
+    assigned_carrier = BoolVarArray(*this, total_max, 0, 1);  //s_k ; dimension k
+    assigned_carrier_set = SetVar(*this, IntSet::empty, 0, total_max - 1);
+    cars = BoolVarArray(*this, n_cars * 2 * total_max, 0, 1); //x_ijk, use slice to access
     _cost = IntVar(*this, 0, Gecode::Int::Limits::max);
     xcoord = IntVarArray(*this, n_cars, 0, Gecode::Int::Limits::max);
     ycoord = IntVarArray(*this, n_cars, 0, Gecode::Int::Limits::max);
@@ -76,20 +77,22 @@ Logistics::Logistics(const SizeOptions & opt):
 
     //calculate the cost, sum cost if the value in assigned_carrier is 1
     channel(*this,assigned_carrier,assigned_carrier_set);
-    weights(*this,IntArgs::create( n_type1_max+n_type2_max,0), carrier_cost, assigned_carrier_set, _cost);
+    weights(*this,IntArgs::create(total_max,0), carrier_cost, assigned_carrier_set, _cost);
     rel(*this, _cost, IRT_GQ, min_carrier*1000);  
 
     
     //IntVarArgs temp = cars.slice(0,)
-    Matrix<BoolVarArray> temp(cars,2*n_cars,n_type1_max+n_type2_max);
+    Matrix<BoolVarArray> temp(cars,2 * n_cars, total_max);
 
     for(int k=0; k < n_type1_max+n_type2_max; k++){
         //an item can be assigned to a bin layer only if the bin is used
-       rel(*this, temp.row(k), IRT_LQ, assigned_carrier[k]);
+       rel(*this, temp.row(k), IRT_LQ, assigned_carrier[k]); 
+    }
 
+    for(int i=0; i<n_cars; i++){
         //sigma x_ijk = 1
-       linear(*this, cars.slice(2*k,n_type1_max+n_type2_max,n_cars)+
-            cars.slice(2*k+1,n_type1_max+n_type2_max,n_cars),IRT_EQ, 1);  
+       linear(*this, cars.slice(2*i, 2*total_max ,n_cars)+
+           cars.slice(2*i+1, 2*total_max ,n_cars), IRT_EQ, 1);  
     }
 
     //cumulative... to be continued
@@ -97,36 +100,27 @@ Logistics::Logistics(const SizeOptions & opt):
     IntVarArgs ycoord_current;
     for(int k = 0; k < n_type1_max+n_type2_max; k++){
         for(int j=0; j<2; j++){
-            
+
         }
     }
 
     //20% constraint
-    IntVar n_type1 = expr(*this, sum( assigned_carrier.slice(n_type1_max,0)));
-    IntVar n_type2 = expr(*this, sum( assigned_carrier.slice(n_type2_max,n_type1_max+1)));
-    cout << n_type2 << endl;
-    // rel(*this, n_type2 <= n_type1*0.2);
-    //IntVar n_type1 = IntVar(*this, 0, Gecode::Int::Limits::max);
-    // IntVar n_type2 = IntVar(*this, 0, Gecode::Int::Limits::max);
-    // SetVar type1_set = SetVar(*this, IntSet::empty, 0, n_type1_max -1);
-    // SetVar type2_set = SetVar(*this, IntSet::empty, 0, n_type2_max -1);
-    // channel(*this, assigned_carrier.slice(n_type1_max,0),type1_set);
-    // channel(*this, assigned_carrier.slice(n_type2_max,n_type1_max),type2_set);
-    // cardinality(*this, type1_set, n_type1);
-    // cardinality(*this, type2_set, n_type2);
-    //rel(*this, n_type2 <= 0.2* n_type1);
+    IntVar n_type1 = expr(*this, sum( assigned_carrier.slice(0,1,n_type1_max)));
+    IntVar n_type2 = expr(*this, sum( assigned_carrier.slice(n_type1_max,1,n_type2_max)));
+    rel(*this, n_type2 <= n_type1*0.2);
+
 
     //if height > 1.7 , bin can be packed only to lower layer
 
-    for(int k = 0; k < n_type1_max+n_type2_max; k++){
-        for(int j=0; j<2; j++){
-            for(int i=0; i<n_cars; i++){
-               if(car_height[i]>1.7){
-                //rel(*this, , IRT_EQ,car_height[i]>1.7);
-               }
-            }
+    for(int i=0; i< n_cars; i++){
+        if(car_height[i]>1.7){
+            //cannot be packed in the upper layer
+            rel(*this, cars.slice(2*i+1, 2*total_max ,n_cars),IRT_EQ, 0);  
+            //must be packed in the lower layer
+            linear(*this, cars.slice(2*i, 2*total_max ,n_cars), IRT_EQ, 1);  
         }
     }
+
 
 
 
@@ -175,7 +169,7 @@ Space* Logistics::copy(bool share) {
 void Logistics::print(std::ostream& os) const {
     os <<  _cost << "\n"
         << assigned_carrier_set <<"\n"
-     << cars
+     //<< cars
     <<endl;
     /*
     os << "cost: "   << total_cost << endl
