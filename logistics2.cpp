@@ -4,11 +4,11 @@
 const int ncar1 = 156;
 const int ncar2 = 102;
 const int ncar3 = 39;
-const int lcar[3]={4610,3615, 4630};
-const int wcar[3]={1700, 1605, 1785};
-const int hcar[3]={1510, 1394, 1770};
-const int lcarrier[2]={19000,24300};
-const int wcarrier[2][2]={{2700,2700},{2700, 3500}};
+const int lcar[3]={461,361, 463};
+const int wcar[3]={170, 160, 178};
+const int hcar[3]={151, 139, 177};
+const int lcarrier[2]={1900,2430};
+const int wcarrier[2][2]={{270,270},{270, 350}};
 
 /* CONSTRUCTION AND COPY */
 Logistics::Logistics(const SizeOptions & opt):
@@ -21,6 +21,8 @@ Logistics::Logistics(const SizeOptions & opt):
     int n_type1_max = max_carrier;
     int n_type2_max = max_carrier*0.2;
     int total_max = n_type1_max + n_type2_max;
+
+
 
     //initialize the items(cars)
 
@@ -81,7 +83,6 @@ Logistics::Logistics(const SizeOptions & opt):
     rel(*this, _cost, IRT_GQ, min_carrier*1000);  
 
     
-    //IntVarArgs temp = cars.slice(0,)
     Matrix<BoolVarArray> temp(cars,2 * n_cars, total_max);
 
     for(int k=0; k < n_type1_max+n_type2_max; k++){
@@ -96,17 +97,56 @@ Logistics::Logistics(const SizeOptions & opt):
     }
 
     //cumulative... to be continued
-    IntVarArgs xcoord_current;
-    IntVarArgs ycoord_current;
-    for(int k = 0; k < n_type1_max+n_type2_max; k++){
+   
+    for(int k = 0; k < total_max ; k++){
+        //IntVarRanges i(assigned_carrier[k]);
         for(int j=0; j<2; j++){
+            //if there's item in this bin
+            SetVar selected_cars = SetVar(*this, IntSet::empty, 0,n_cars-1);
+            //cout <<  cars.slice(2*total_max*k+j, 2, n_cars);
+            channel(*this, cars.slice(2*total_max*k+j, 2, n_cars), selected_cars); //set may be empty
 
+           IntVar size = expr(*this, cardinality(selected_cars));
+
+            IntVarArgs xcoord_current;
+            IntVarArgs ycoord_current;
+            IntArgs width_current;
+            IntArgs length_current;
+
+            IntVarRanges i_size(size);
+            if(i_size.min()!=0 && i_size.min()==i_size.max()){
+                //fixed & nonzero
+                int card = i_size.min(); // size of the set
+                IntVar idx = IntVar(*this,  0, Gecode::Int::Limits::max);
+                rel(*this, selected_cars, IRT_EQ, idx);
+
+                for(IntVarValues i(idx); i(); ++i){
+                    xcoord_current << xcoord[i.val()];
+                    ycoord_current << ycoord[i.val()];
+                    width_current << car_width[i.val()];
+                    length_current << car_length[i.val()];
+
+                    rel(*this, xcoord_current, IRT_LQ, carrier_width[2*k+j]);
+                    rel(*this, ycoord_current, IRT_LQ, carrier_length[k]);
+
+
+                    cumulative(*this, carrier_width[2*k+j], xcoord_current, width_current,length_current);
+                    cumulative(*this, carrier_length[k], ycoord_current,length_current,width_current);
+
+                }    
+
+            }
+        
         }
     }
 
     //20% constraint
-    IntVar n_type1 = expr(*this, sum( assigned_carrier.slice(0,1,n_type1_max)));
-    IntVar n_type2 = expr(*this, sum( assigned_carrier.slice(n_type1_max,1,n_type2_max)));
+    IntVar n_type1 = IntVar(*this, 0, Gecode::Int::Limits::max);
+    IntVar n_type2 = IntVar(*this, 0, Gecode::Int::Limits::max);
+
+    n_type1 = expr(*this, sum( assigned_carrier.slice(0,1,n_type1_max)));
+    n_type2 = expr(*this, sum( assigned_carrier.slice(n_type1_max,1,n_type2_max)));
+
     rel(*this, n_type2 <= n_type1*0.2);
 
 
@@ -124,8 +164,9 @@ Logistics::Logistics(const SizeOptions & opt):
 
 
 
-     //branch(*this, cars, INT_VAR_SIZE_MAX(), INT_VAL_MAX()) ;
-      branch(*this, assigned_carrier, INT_VAR_SIZE_MAX(), INT_VAL_MAX()) ;
+    
+     branch(*this, assigned_carrier, INT_VAR_SIZE_MAX(), INT_VAL_MAX()) ;
+    // branch(*this, cars, INT_VAR_SIZE_MAX(), INT_VAL_MAX()) ;
 }
 
 Logistics::Logistics(bool share, Logistics& s) :
@@ -136,13 +177,7 @@ Logistics::Logistics(bool share, Logistics& s) :
        assigned_carrier_set.update(*this, share, s.assigned_carrier_set);
        cars.update(*this, share, s.cars);
        xcoord.update(*this, share, s.xcoord);
-       ycoord.update(*this, share, s.ycoord);
-
-       //copy the args
-       n_cars = s.n_cars;
-
-
-        
+       ycoord.update(*this, share, s.ycoord);        
     }
 
 Logistics::~Logistics() {

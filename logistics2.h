@@ -5,6 +5,7 @@
 #include <gecode/driver.hh>
 #include <gecode/minimodel.hh>
 #include <gecode/set.hh>
+#include <gecode/gist.hh>
 #include <math.h>
 
 using namespace std;
