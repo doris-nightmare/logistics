@@ -11,8 +11,6 @@
 \geometry{left=2.5cm,right=2.5cm,top=2.5cm,bottom=2.5cm}
 
 \begin{document}
-
-ljskljklkkjkjkj s
 %	\forall i \in N ~ \sum_{k=1}^{K}\sum_{j=1}^{2} X_{ijk}=1
 %\end{equation}
 
@@ -225,16 +223,42 @@ Gecode\cite{gecode}是一个基于c++实现的约束编程模型求解器。
 
 \section{模型的建立与求解}
 
-\subsection{问题一、二、三通用}
-
-\subsubsection{模型建立}
+\subsection{模型建立}
 	\paragraph{实例变量}
 	\paragraph{决策变量}
 	\paragraph{约束条件}
+\subsection{模型求解}
+\subsubsection{问题一、二、三求解}
 
-\subsubsection{模型求解}
+\subsubsection{问题四求解}
+\begin{table}[h!]
+\centering
+\begin{tabular}{|p{1.5cm}|p{1.5cm}|p{1.5cm}|p{1.5cm}|p{1.5cm}|p{1.5cm}|p{1.5cm}|p{1.5cm}|}
+\hline
+轿用车类型&相同类型、相同装载方式的车辆数&装在上层序号为1乘用车数量&装在上层序号为2乘用车数量&装在下层序号为1乘用车数量&装在下层序号为2乘用车数量&中间停靠地&目的地\\\hline
+1-1&	5&	4&	0&	4&	0&	0&	A\\\hline
+1-1&1&0&5&0&5&0&A\\\hline
+1-2&1&2&10&0&6&0&A\\\hline
+1-1&1&4&0&0&5&B&A\\\hline
+1-1&3&4&0&4&0&0&B\\\hline
+1-2&1&10&0&5&0&0&B\\\hline
+1-1&1&4&0&4&0&D&B\\\hline
+1-1&4&4&0&4&0&0&C\\\hline
+1-2&1&1&11&0&6&0&C\\\hline
+1-1&3&0&5&0&5&0&C\\\hline
+1-1&3&4&0&4&0&0&D\\\hline
+1-2&1&10&0&5&0&0&D\\\hline
+1-1&1&0&0&1&0&0&D\\\hline	
+\end{tabular}
+\end{table}
+
+
+\subsubsection{问题五求解}
 本模型是基于约束编程的思想所建立,模型的求解使用Gecode \cite{gecode}
+16,2，
 
+25,5
+22,4
 \section{模型的评价、改进及推广}
 
 
