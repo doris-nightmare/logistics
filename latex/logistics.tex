@@ -1,4 +1,4 @@
-\documentclass[UTF8]{ctexart}
+\documentclass[UTF8，12pt]{ctexart}
 \usepackage{CJK}
 \usepackage{amsmath}
 \usepackage{amssymb}
@@ -9,6 +9,7 @@
 \usepackage{pdfpages}
 \usepackage{fancyhdr}
 \usepackage{placeins}
+
 
 
 \pagestyle{plain}
@@ -63,19 +64,20 @@
 \textbf{针对问题5：}
 在乘用车、轿运车类型、尺寸、数量、目的地更多样化的情境下，持续优化了问题4中建立的3维乘用车装载模型，以支持复杂的乘用车装载问题的建模和分析需求，并通过经验分析增加了必要的约束条件以缩小解空间，以保证在更短时间内求得较优解。 \\
 
-本文综合运用数理统计、分支限界等数学方法，箱柜装载问题的建模思想，借助Gecode系统建立了多种满足约束编程思想的数学模型，并对所提出问题进行了研究，具有很好的实用性与推广性。最后，总结了模型的优点与不足，为后续研究此类问题的学者提供了一个新的思路。
+本文综合运用数理统计、分支限界等数学方法，多维装箱问题的建模思想，借助Gecode系统建立了多种满足约束编程思想的数学模型，
+并对所提出问题进行了研究，具有很好的实用性与推广性。最后，总结了模型的优点与不足，为后续研究此类问题的学者提供了一个新的思路。
 
 \end{abstract}
 
 \makeatletter
 \def\ckey#1{\def\@ckey{#1}}\def\@ckey{}
 \def\makeak{
-  \fontsize{14pt}{\baselineskip}\selectfont
+  \fontsize{12pt}{\baselineskip}\selectfont
   \hspace{0.01em}{关键字：} \@ckey
 }
 \makeatother
 
-\ckey{约束编程，箱柜装载，轿运车调度}
+\ckey{约束编程，多维装箱问题，物流调度}
 \makeak
 \clearpage
 \tableofcontents
@@ -150,7 +152,7 @@
 		\item $h_i$ 第$i$辆乘用车的高度
 		\item $d$ 乘用车目的地
 		\item $d_i$ 第$i$辆的目的地 $d_i \mapsto \{A, B, C, D\}$
-		\item $D$ 表示出发地$O$到各目的地的距离， $D=\{D_A, D_B, D_C, D_D\}$
+		\item $D$ 表示出发地$O$到各目的地的距离
 		\item $C$ 运输成本
 		\item $C_k$ 第$k$辆轿运车的运输成本
 		\item $L$ 轿运车长度
@@ -421,7 +423,7 @@ Gecode\cite{gecode}是一个基于c++实现的约束编程模型求解器，
 	\end{itemize}
 \paragraph{目标函数}
 			\begin{equation}
-				C \ = \ \sum_{k=1}^{K}C_k \cdot s_k
+				C \ = \ \sum_{k=1}^{K}C_k \cdot s_k \cdot D_{dest_k}
 			\end{equation}
 	
 \paragraph{约束条件}
@@ -452,12 +454,9 @@ Gecode\cite{gecode}是一个基于c++实现的约束编程模型求解器，
 		&		 cumulatives(W_{jk}, \{xcoord_i | x_{ijk}=1 \},\{ w_i | x_{ijk}=1\},  \{xcoord_i | x_{ijk}=1 \}, \{l_i | x_{ijk}=1\}, L_{jk}) 
 		\end{align}
 		
-		\item 限制仅目的地为$\{C,~D\}$或$\{D,~B,~A\}$的组合可以出现在同一轿运车
-		%\begin{equation}
-			
-		%\end{equation}
 		
-		\item 优先级为$D >_{priority} C$， $A >_{priority} B >_{priority} C $
+		\item  限制仅目的地为$\{C,~D\}$或$\{D,~B,~A\}$的组合可以出现在同一轿运车,
+			优先级为$D >_{priority} C$， $A >_{priority} B >_{priority} C $
 			\footnote{此次所指优先级应理解为若一辆轿运车同时载有去目的地$C$和$D$，则将轿运车的目的地视为$C$,对于$A,~B,~C$亦同}
 		\begin{equation}
 			\forall i,k \  x_{ijk}=1 \Leftrightarrow 	dest_k \ \geq_{priority} \ d_i
@@ -466,6 +465,88 @@ Gecode\cite{gecode}是一个基于c++实现的约束编程模型求解器，
 	\end{itemize}
 
 \subsubsection{问题五模型}
+较之于问题四，问题五主要问题在于复杂的轿运车和乘用车类型以及轿运车的可使用量限制。
+容易看出乘用车部分的模型能够适应问题五的需求，而由于问题五中涉及的轿运车种类 
+无法用$T$唯一确定，所以增加模型参数$X$用以明确轿运车的序号。同时，
+移除1-2的使用数目不得超过1-1使用数目的20\%的约束条件。
+
+同时，问题五新增了目的地E，所以根据BE=104，AE =60，可以得到新的出发到到各目的地距离集合
+$D=\{D_A=360, D_B=280, D_C=216, D_D=160, D_E=384 \}$
+\paragraph{模型参数}
+	\begin{itemize}
+			\item $N$ 乘用车总数，$i$表示第$i$辆乘用车， $i \in \{1 \dots N\}$
+			\item $K$ 为轿运车使用量, $k$表示第$k$轿运车下标,  $k \in \{1 \dots K\}$
+			\item $j$ 轿运车层级， $j \mapsto \{1,2\}$
+			\item $l_i$ 第$i$辆乘用车长度
+			\item $w_i$ 第$i$辆乘用车的宽度
+			\item $h_i$ 第$i$辆乘用车的高度
+			\item $C_k$ 第$k$辆轿运车的运输成本, $C=\sum_{k=1}^{K}C_k$
+			\item $L_{jk}$ 第$k$辆轿运车第$j$层的长度
+			\item $W_{jk}$ 第$k$辆轿运车第$j$层的宽度
+			\item $T_k$ 第$k$辆轿运车的类型， $T_k \mapsto \{1, ~2, ~3\}$
+			\item $d_i$ 第$i$辆车的目的地，$d_i \mapsto \{A, B, C, D， E\}$		
+			\item 出发地$O$到各目的地的距离所在集合为 $D=\{D_A=360, D_B=280, D_C=216, D_D=160, D_E=384 \}$
+			\item $idx$表示第$idx$序的轿运车，$idx \mapsto \{1,2, \dots, 10\}$
+			\item $a_{idx}$表示第$idx$序的轿运车累计可使用的数目。
+		\end{itemize}
+
+\paragraph{决策变量}
+	\begin{itemize}
+		\item $s_k \mapsto \{0,1\}, ~ k \in K$， 若变量$s_k$为1，则表示第$k$辆轿运车已经被使用；
+		反之，则第$k$辆轿运车未被使用。
+		\item $x_{ijk}\mapsto \{0,1\}, ~ i\in N,~ k \in K,~ j\in \{1,2\}$，若$x_{ijk}$为1，
+		则表示第$i$辆乘用车被分配到了第$k$辆轿运车的第$j$层。
+		\item $dest_k \mapsto \{A,B,C,D,E\}  ~ k \in K$ $dest_k$表示第$k$辆轿运车被分配的目的地。
+		\item $I_k$为第$k$辆车所分配轿运车对应的序号
+	\end{itemize}
+
+\paragraph{目标函数}
+	问题五所需最小化的目标函数与问题四相同。
+		\begin{equation}
+					C \ = \ \sum_{k=1}^{K}C_k \cdot s_k \cdot D_{dest_k}
+		\end{equation}
+				
+\paragraph{约束条件}
+	\begin{itemize}
+		\item 只有当轿运车确定为使用状态时才能为其分配乘用车
+		\begin{equation}
+		 x_{ijk} \leq s_k  \quad 	\forall i,~ j
+		\end{equation}
+		
+		\item 所有乘用车必须被分配给某一轿运车
+		\begin{equation}
+			\sum_{k=1}^{K} \sum_{j=1}^{2} x_{ijk}=1 \quad \forall i
+		\end{equation}
+		
+		\item 1-2的使用数目不得超过1-1使用数目的20\%
+		\begin{equation}
+			\sum_{k=1}^{K} \ s_k[T_k=2] \leq 20\% \cdot \sum_{k=1}^{K}  \ s_k[T_k=1]
+		\end{equation}
+		
+		\item 对于高度超过1.7米的乘用车，只能放在1-1或1-2型轿运车的下层
+		\begin{equation}
+			\forall i \ h_i>1.7 \ \implies \sum_{k=1}^{K}x_{i1k}=0
+		\end{equation}
+		
+		\item 对于任一轿运车的任一层，所包含的乘用车必须能够满足该区域的长宽要求
+		\begin{align}
+		&	\forall k, j \quad  x_{ijk}=1  \implies \notag\\
+		&		 cumulatives(W_{jk}, \{xcoord_i | x_{ijk}=1 \},\{ w_i | x_{ijk}=1\},  \{xcoord_i | x_{ijk}=1 \}, \{l_i | x_{ijk}=1\}, L_{jk}) 
+		\end{align}
+		
+		
+		\item  限制仅目的地为$\{C,~D\}$或$\{D,~E,~B,~A\}$的组合可以出现在同一轿运车,
+			优先级为$D >_{priority} C$， $A >_{priority} E >_{priority} B >_{priority} C $
+		\begin{equation}
+			\forall i,k \  x_{ijk}=1 \Leftrightarrow 	dest_k \ \geq_{priority} \ d_i
+		\end{equation}
+		
+		\item 各序号的轿运车使用量不得超过其累计可使用量
+		\begin{equation}
+			\forall idx, ~ \sum_{k=1}^{K} \ s_k[I_k=idx] \leq a_{idx}
+		\end{equation}
+		
+	\end{itemize}
 
 \subsection{模型求解}
 本文所有涉及模型均采用Gecode\cite{gecode}求解
