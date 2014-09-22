@@ -1,22 +1,76 @@
 \documentclass[UTF8]{ctexart}
+\usepackage{CJK}
 \usepackage{amsmath}
 \usepackage{amssymb}
 \usepackage{graphics}
 \usepackage{geometry}
 \usepackage{subcaption}
 \usepackage{mathrsfs}
+\usepackage{pdfpages}
+\usepackage{fancyhdr}
+\usepackage{placeins}
+
+
+\pagestyle{plain}
+
+%\setCJKfamilyfont{hei}{黑体}  % 黑体
+\newcommand{\hei}{\CJKfamily{hei}}
+\newcommand{\xiaoerhao}{\fontsize{18pt}{\baselineskip}\selectfont}
+\newcommand{\sihao}{\fontsize{14pt}{\baselineskip}\selectfont}	
+\renewcommand{\abstractname}{\xiaoerhao \hei \textnormal{摘 \hspace{3em} 要：}}
 
 
 
-\geometry{left=2.5cm,right=2.5cm,top=2.5cm,bottom=2.5cm}
+\geometry{top=3cm, bottom=3cm, left=2.5cm, right=2.5cm}
 
 \begin{document}
 %	\forall i \in N ~ \sum_{k=1}^{K}\sum_{j=1}^{2} X_{ijk}=1
 %\end{equation}
 
+
+%\includepdf{figure/1.pdf} 
+
+\pagebreak
+\begin{figure}[t]
+	\includegraphics[width=\linewidth]{figure/header.png}
+\end{figure}
+
+
+\begin{table}[h]
+\centering
+\begin{tabular}{c  c} 
+		{\fontsize{14pt}{\baselineskip}\selectfont 	{题目}} & 
+		{\fontsize{16pt}{\baselineskip}\selectfont \textbf{乘用车物流运输计划问题}} \\\cline{2-2}
+\end{tabular}
+
+\end{table}
+
+\FloatBarrier
+
 \begin{abstract}
-hello
+本文对乘用车物流运输计划问题进行了研究，针对不同情境，将问题抽象成不同维度的箱柜装载问题进行建模，并取得了以下几方面的成果。\\
+
+\textbf{针对问题1,2,3：}
+采用约束编程的建模思想，建立了适用于多种尺寸的乘用车、轿运车的3维乘用车装载数学模型，并获得了在给定乘用车车型数量的前提下，最优的运载分配策略。 \\
+结论（1）：在题中给定的约束条件下，运载100辆Ⅰ车型的乘用车及68辆Ⅱ车型的乘用车，至少需16辆1-1型乘用车及2辆1-2型乘用车。\\
+结论（2）：在题中给定的约束条件下，运载72辆Ⅱ车型的乘用车及52辆Ⅲ车型的乘用车，至少需。。。辆1-1型乘用车及。。。辆1-2型乘用车。\\
+结论（3）：在题中给定的约束条件下，运载156辆Ⅰ车型的乘用车及102辆Ⅱ车型的乘用车，至少需。。。辆1-1型乘用车及。。。辆1-2型乘用车。\\
+
+\textbf{针对问题4：}
+进一步优化了问题1,2,3中的数学模型，完善并支持了考虑行车路线问题的轿运车运输乘用车问题，并给出了通用算法和程序解决了乘用车装载方案及行车路线方案。
+结论：在题中给定的约束条件及运输路线下，运输166辆Ⅰ车型的乘用车和78辆Ⅱ车型的乘用车至少需。。。辆1-1型乘用车及。。。辆1-2型乘用车。\\
+
+\textbf{针对问题5：}
+在乘用车、轿运车类型、尺寸、数量、目的地更多样化的情境下，持续优化了问题4中建立的3维乘用车装载模型，以支持复杂的乘用车装载问题的建模和分析需求，并通过经验分析增加了必要的约束条件以缩小解空间，在更短时间内求得较优解。
+结论：在题中给定的约束条件下，运载附件中所示乘用车到指定目的地，至少需。。。辆1-1型乘用车及。。。辆1-2型乘用车。
+本文综合运用数理统计、分支限界等数学方法，箱柜装载问题的建模思想，借助Gecode系统建立了多种满足约束编程思想的数学模型，并对所提出问题进行了研究，具有很好的实用性与推广性。最后，总结了模型的优点与不足，为后续研究此类问题的学者提供了一个新的思路。
+
 \end{abstract}
+
+\clearpage
+\tableofcontents
+\clearpage
+
 
 \section{问题重述}
 \subsection{提出问题}
@@ -70,16 +124,7 @@ hello
 \end{enumerate}
 
 \section{基本符号说明}
-\begin{table}[h!]
-	\begin{tabular}{c || l}
 
-	$N$  & 乘用车总数 \\
-	$K$ & 为轿运车使用量 \\
-	$w$ &乘用车宽度
-	
-	\end{tabular}
-	
-\end{table}
 	\begin{itemize}
 		\item $N$ 乘用车总数
 		\item $i$ 乘用车下标， $i \in N$
@@ -92,6 +137,9 @@ hello
 		\item $w_i$ 第$i$辆乘用车的宽度
 		\item $h$ 乘用车高度
 		\item $h_i$ 第$i$辆乘用车的高度
+		\item $d$ 乘用车目的地
+		\item $d_i$ 第$i$辆的目的地 $d_i \mapsto \{A, B, C, D\}$
+		\item $D$ 表示出发地$O$到各目的地的距离， $D=\{D_A, D_B, D_C, D_D\}$
 		\item $C$ 运输成本
 		\item $C_k$ 第$k$辆轿运车的运输成本
 		\item $L$ 轿运车长度
@@ -99,7 +147,8 @@ hello
 		\item $W$ 轿运车宽度
 		\item $W_{jk}$ 第$k$辆轿运车第$j$层的宽度
 		\item $T$ 轿运车类型
-		\item $T_k$ 第$k$辆轿运车的类型， $T_k \mapsto \{1-1, ~1-2, ~2-2 \dots \}$
+		\item $T_k$ 第$k$辆轿运车的类型， $T_k \mapsto \{1, ~2, ~3 \dots \}$，其中$1$代表1-1型轿运车，$2$代表1-2型轿运车，$3$代表2-2型轿运车
+		
 		
 	\end{itemize}
 
@@ -107,14 +156,13 @@ hello
 \section{问题分析}
 本文的基本问题是解决如何分配乘用车到轿运车并使整体运输成本最低的问题。
 经过对问题本身的分析，
-该问题可以看左组合优化问题( Combinatorial Optimization Problem)，
+该问题可以视作组合优化问题( Combinatorial Optimization Problem)，
 而组合优化问题从计算复杂度上来看属于NP-困难问题，即在多项式时间内
 无法确定能够找到有效算法求解的问题。
 
 本文拟采用约束编程(Constraint Programming)的思想进行建模与求解。
-
 而对于组合优化的问题，还需列出对应的最大化或者最小化的目标函数。
-由于本文所提乘用车物流运输计划的问题从计算复杂度上来看属于NP-困难，所以在解决的过程中，引入启发式算法（Heuristics)。
+
 
 \subsection{技术背景}
 \subsubsection{约束编程}
@@ -122,7 +170,9 @@ hello
 一般地， 
 约束编程的支持通用的求解程序对约束模型进行求解
 \paragraph{Gecode}
-Gecode\cite{gecode}是一个基于c++实现的约束编程模型求解器。
+Gecode\cite{gecode}是一个基于c++实现的约束编程模型求解器，
+ke可用于开发基于约束的系统应用程序，是一个可移植、高效的环境。 Gecode是从根本上进行编程开放，这意味着它可以很容易地与其他系统的接口。它支持新的传播者（如约束的执行情况），
+分支策略，和搜索引擎编程。新的变量域可以被编程的效率，在有限域和整数集，拿出Gecode预定义变量相同的水平。
 
 	
 
@@ -136,9 +186,41 @@ Gecode\cite{gecode}是一个基于c++实现的约束编程模型求解器。
 问题一、二、三要求计算各种类型轿运车的数量和每辆轿运车的乘用车装载方案，各类型乘用车数量已知，
 所需各类型轿运车数量及各轿运车的装载方案未知，但不涉及运输目的地的差异。并且，问题一、二、三
 的差异仅为输入参数不同，所以拟建立通用的模型进行求解。
+更具体的，我们拟采用基于约束编程
 
-\subsubsection{模型建立}
-\paragraph{基本思想}
+
+
+
+
+
+
+
+
+
+\subsection{问题四分析}
+问题四要求在考虑行车路线的情况下解决轿运车运输乘用车问题，计算所需各类型轿运车的数量及每辆轿运车的乘用车装载方案。
+各类型乘用车数量已知，所需各类型轿运车数量及各轿运车的装载方案未知。
+为解决这一问题，需要在前三题建立的通用模型基础之上，额外考虑运输路线的因素，并添加相关的限制条件。
+因为我们假设运输路线是一个有向图，所以只会有O->D->C,和O->D->B->A这两条运输路线。
+因此，针对路线O->D->C，可以约束只有终点是D，C的乘用车可以在一辆轿运车上一次运输。针对路线O->D->B->A，
+可以约束只有终点是D，B，A的乘用车可以在一辆轿运车上一次运输。因终点是D的乘用车在这两条路线的轿运车里都可以装载
+，因此可以把装载终点是D的乘用车的装载优先级放低。又因行驶路线为有向图，所以在O->D->C这一运输路线中，
+我们认为终点是C的乘用车的运载优先级高于终点是D的乘用车。同理可得，终点是A的乘用车的运载优先级高于终点是B的乘用车，
+而终点是B的乘用车的运载优先级高于终点是D的乘用车。各段长度：OD=160，DC=76，DA=200，DB=120也需要被添加到约束条件里，
+以将行使里程考虑在行使成本中，半定量化最终的运输成本。因此，对这一问，可以在解决1-3问的通用数学模型的基础之上，
+加上以上这些约束条件以保证满足本题的运载条件，并获得在给定条件下的最优解。
+
+
+\begin{figure}[h!]
+	\centering
+	\includegraphics[width=0.4\linewidth]{figure/Q4.png}
+\end{figure}
+
+
+\section{模型的建立与求解}
+\subsection{模型建立}
+\subsubsection{问题一、二、三通用模型}
+%\paragraph{基本思想}
 
 \paragraph{模型参数}
 	本模型涉及模型基本参数如前所述
@@ -196,16 +278,6 @@ Gecode\cite{gecode}是一个基于c++实现的约束编程模型求解器。
 任务用4-元组\textit{(起始时间，持续时间,终止时间,占用资源)}表示，而资源用2-元组\textit{(资源，限制)}表示。
 对于给定的任务集合$\mathscr{T}$，在单资源的情况下，cumulative约束强制在任一时间点，
 任务所占的资源数不超过所限制的阈值，单资源情况下cumulative约束所适用的问题如图\ref{fig:cumulative}所示。\\
-而对于多资源的情况，即对一组资源$\mathscr{R}$和一组任务$\mathscr{T}$，任务必须被
-分配到可用的资源并且对各资源的使用不超过资源的限制。定义多资源情况下的cumulative
-约束原型如下： 
-	\begin{align*}
-	cumulatives( resource, start, duration, end, height, limit)
-	\end{align*}
-根据\cite{cumulatives}中所述思想，cumulatives约束的实现如下：
-
-	
-
 \begin{figure}[h!]
 	\centering
 	\includegraphics[width=0.4\linewidth]{figure/cumulative.png}
@@ -213,20 +285,60 @@ Gecode\cite{gecode}是一个基于c++实现的约束编程模型求解器。
 	\label{fig:cumulative}
 \end{figure}
 
+而对于多资源的情况，即对一组资源$\mathscr{R}$和一组任务$\mathscr{T}$，任务必须被
+分配到可用的资源并且对各资源的使用不超过资源的限制。定义多资源情况下的cumulative
+约束原型如下： 
+	\begin{align*}
+	cumulatives( resource, start, duration, end, height, limit)
+	\end{align*}
+根据\cite{cumulatives}中所述思想，我们采用了基于\textit{交换}的cumulatives约束实现，具体算法如
+图\ref{al1_cum}和图\ref{al2_cum}所示：
+
+\begin{figure}[h!]
+	\includegraphics[width=\linewidth]{figure/al1_cum.png}
+	\caption{交换算法1}
+	\label{al1_cum}
+\end{figure}
+
+\begin{figure}[h!]
+	\includegraphics[width=\linewidth]{figure/al2_cum.png}
+	\caption{交换算法2}
+	\label{al2_cum}
+\end{figure}
+
+\begin{figure}[h!]
+	\includegraphics[width=\linewidth]{figure/illustrative_cum.png}
+	\caption{交换算法示例}
+	\label{ill_cum}
+\end{figure}
+
+\paragraph{搜索策略}
+为了在解空间的搜索过程中不断最小化目标函数寻找最优解，本问题采用分支定界法（Branch and Bound）\cite{bbalgorithm}来寻找模型的最优解。
+
+它是由R.J.达金和兰德－多伊格在20世纪60年代初提出的。
+分支定界法的基本思想是对有约束条件的最优化问题的所有可行解（数目有限）空间进行搜索。
+所谓“分支”是采用广度优先的策略，依次生成扩展结点的所有分支（即：儿子结点）。
+所谓“限界”是在结点扩展过程中，计算结点的上界（或下界），边搜索边减掉搜索树的某些分支，从而提高搜索效率。
+该算法在具体执行时，把全部可行的解空间不断分割为越来越小的子集（称为分支），
+并为每个子集内的解的值计算一个下界或上界（称为定界）。
+在每次分支后，对凡是界限超出已知可行解值的那些子集不再做进一步分支。
+这样，解的许多子集（即搜索树上的许多结点）就可以不予考虑了，从而缩小了搜索范围。
+这一过程一直进行到找出可行解为止，该可行解的值不大于任何子集的界限，因此这种算法一般可以求得最优解。\\
+
+分枝界限法是组合优化问题的有效求解方法，其步骤如下所述：
+\begin{itemize}
+		\item 步骤一：如果问题的目标为最小化，则设定目前最优解的值Z=$\infty$
+		\item 步骤二：根据分枝法则（Branching rule），从尚未被洞悉（Fathomed）节点（局部解）中选择一个节点，并在此节点的下一阶层中分为几个新的节点。
+		\item 步骤三：计算每一个新分枝出来的节点的下限值（Lower bound，LB）
+		\item  步骤四：对每一节点进行洞悉条件测试，若节点满足以下任意一个条件，则此节点可洞悉而不再被考虑：此节点的下限值大于等于Z值。已找到在此节点中，具最小下限值的可行解；若此条件成立，则需比较此可行解与Z值，若前者较小，则需更新Z值，以此为可行解的值。此节点不可能包含可行解。
+		\item 步骤五：判断是否仍有尚未被洞悉的节点，如果有，则进行步骤二，如果已无尚未被洞悉的节点，则演算停止，并得到最优解。
+\end{itemize}
 
 
+\subsubsection{问题四模型}
 
+\subsubsection{问题五模型}
 
-
-
-\subsection{问题四分析}
-
-\section{模型的建立与求解}
-
-\subsection{模型建立}
-	\paragraph{实例变量}
-	\paragraph{决策变量}
-	\paragraph{约束条件}
 \subsection{模型求解}
 \subsubsection{问题一、二、三求解}
 
@@ -263,11 +375,16 @@ Gecode\cite{gecode}是一个基于c++实现的约束编程模型求解器。
 
 
 
+
+
+
 \begin{thebibliography}{1}  % even better: use BibTeX!
 \bibitem{gecode} Gecode Team.  \textit{Gecode}: Generic Constraint
   Development Environment, 2006. 
   
 \bibitem{cumulatives}Beldiceanu, Nicolas, and Mats Carlsson. "A new multi-resource cumulatives constraint with negative heights." Principles and Practice of Constraint Programming-CP 2002. Springer Berlin Heidelberg, 2002. 
+
+\bibitem{bbalgorithm} Land, Ailsa H., and Alison G. Doig. "An automatic method of solving discrete programming problems." Econometrica: Journal of the Econometric Society (1960): 497-520.
 
 %\bibitem{Search} Simonis, Helmut, and Barry O’Sullivan. "Search strategies for rectangle packing." \emph{Principles and Practice of Constraint Programming.} Springer Berlin Heidelberg, 2008.
 
