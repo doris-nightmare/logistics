@@ -124,6 +124,7 @@
 \end{enumerate}
 
 \section{基本符号说明}
+\label{sec:symbols}
 
 	\begin{itemize}
 		\item $N$ 乘用车总数
@@ -165,16 +166,20 @@
 
 
 
-\subsection{问题一、二、三分析：}
+\subsection{问题一、二、三分析}
 问题一、二、三要求计算各种类型轿运车的数量和每辆轿运车的乘用车装载方案，各类型乘用车数量已知，
 所需各类型轿运车数量及各轿运车的装载方案未知，但不涉及运输目的地的差异。并且，问题一、二、三
 的差异仅为输入参数不同，所以拟建立通用的基于约束编程的模型进行求解。
 解决该问题一共有三个关键点：
 \begin{itemize}
-	\item 乘用车如何分配给轿运车；分配给轿运车的何层。
-	\item 对于已分配的乘用车，是否满足该轿运车层的长宽约束。
-	\item 采用何种搜索策略能够
+	\item 采用何种策略将乘用车分配给轿运车；并分配给轿运车的何层。
+	\item 对于已分配的乘用车，如何判断是否满足该轿运车层的长宽约束。
+	\item 如何构造目标函数。
+	\item 采用何种搜索策略能够较快接近并找到最优解。
 \end{itemize}
+所以建立的基于约束编程的数学模型，主要是解决以上提出的关键问题。
+具体的模型建立参考\ref{sec:q123_model}节。
+
 
 
 
@@ -189,12 +194,18 @@
 我们认为终点是C的乘用车的运载优先级高于终点是D的乘用车。同理可得，终点是A的乘用车的运载优先级高于终点是B的乘用车，
 而终点是B的乘用车的运载优先级高于终点是D的乘用车。各段长度：OD=160，DC=76，DA=200，DB=120也需要被添加到约束条件里，
 以将行使里程考虑在行使成本中，半定量化最终的运输成本。因此，对这一问，可以在解决1-3问的通用数学模型的基础之上，
-加上以上这些约束条件以保证满足本题的运载条件，并获得在给定条件下的最优解。
+加上以上这些约束条件以保证满足本题的运载条件，并获得在给定条件下的最优解。\\
+为了简化模型的求解，我们对该问题做如下处理：
+\begin{itemize}
+	\item 在确定分配方案时，限制仅目的地为$\{C,~D\}$或$\{D,~B,~A\}$的组合可以出现在同一轿运车。
+	\item 仅在目的地组合相同的分配方案调整车与目的地的映射关系使得总成本在考虑目的地距离的情况下最低。
+\end{itemize}
 
 
 \begin{figure}[h!]
 	\centering
-	\includegraphics[width=0.4\linewidth]{figure/Q4.png}
+	\includegraphics[width=0.3\linewidth]{figure/Q4.png}
+	\caption{问题四涉及目的地及其位置关系}
 \end{figure}
 
 \section{技术背景}
@@ -211,11 +222,23 @@ ke可用于开发基于约束的系统应用程序，是一个可移植、高效
 \section{模型的建立与求解}
 \subsection{模型建立}
 \subsubsection{问题一、二、三通用模型}
-%\paragraph{基本思想}
+\label{sec:q123_model}
 
 \paragraph{模型参数}
-	本模型涉及模型基本参数如前所述
+	\begin{itemize}
+			\item $N$ 乘用车总数，$i$表示第$i$辆乘用车， $i \in \{1 \dots N\}$
+			\item $K$ 为轿运车使用量, $k$表示第$k$轿运车下标,  $k \in \{1 \dots K\}$
+			\item $j$ 轿运车层级， $j \mapsto \{1,2\}$
+			\item $l_i$ 第$i$辆乘用车长度
+			\item $w_i$ 第$i$辆乘用车的宽度
+			\item $h_i$ 第$i$辆乘用车的高度
+			\item $C_k$ 第$k$辆轿运车的运输成本, $C=\sum_{k=1}^{K}C_k$
+			\item $L_{jk}$ 第$k$辆轿运车第$j$层的长度
+			\item $W_{jk}$ 第$k$辆轿运车第$j$层的宽度
+			\item $T_k$ 第$k$辆轿运车的类型， $T_k \mapsto \{1, ~2, ~3\}$	
+		\end{itemize}
 \paragraph{决策变量}
+\label{sec:model1_devar}
 \begin{itemize}
 	\item $s_k \mapsto \{0,1\}, ~ k \in K$， 若变量$s_k$为1，则表示第$k$辆轿运车已经被使用；
 	反之，则第$k$辆轿运车未被使用。
@@ -230,10 +253,11 @@ ke可用于开发基于约束的系统应用程序，是一个可移植、高效
 	$C_{2-2}$=1.0004。通过微调不同车型的对应成本值，可以保证在优化过程中能够首先考虑轿运车的使用数目，
 	同时在使用数目相同的情况下使用耗油量更少的轿运车。
 	\begin{equation}
-		C \ = \ \sum_{k=1}^{K}C_k \cdot S_k
+		C \ = \ \sum_{k=1}^{K}C_k \cdot s_k
 	\end{equation}
 
 \paragraph{约束条件}
+\label{sec:q123_cons}
 	\begin{itemize}
 		\item 只有当轿运车确定为使用状态时才能为其分配乘用车
 		\begin{equation}
@@ -327,6 +351,93 @@ ke可用于开发基于约束的系统应用程序，是一个可移植、高效
 
 
 \subsubsection{问题四模型}
+	相较于问题一的模型参数，由于问题四引入了目的地和距离信息，所以问题四的模型基于问题一、二、三
+	的通用模型做了在考虑目的地和距离信息情况的扩展。\\
+	
+	在模型参数部分加入了$d_i$以表示第$i$辆乘用车的目的地。
+	根据题设已知OD=160, DC=76, DA=200, DB=120，且该题所设计始发地均为点O，
+	由此可以计算出始发地O到各目的地A、B、C、D的距离，距离集合
+	$D=\{D_A=360, D_B=280, D_C=216, D_D=160\}$也作为问题四模型的扩展参数。\\
+	
+	增加决策变量$dest_k$表示第$k$辆车所去的目的地。
+	
+	问题分析中所提及的两个关键点：
+	\begin{enumerate}
+		\item 在确定分配方案时，限制仅目的地为$\{C,~D\}$或$\{D,~B,~A\}$的组合可以出现在同一轿运车。
+		\item 仅在目的地组合相同的分配方案调整车与目的地的映射关系使得总成本在考虑目的地距离的情况下最低。
+	\end{enumerate}
+	分别采用增加约束和调整目标函数的方式来实现。
+	
+	
+	
+\paragraph{模型参数}
+	\begin{itemize}
+			\item $N$ 乘用车总数，$i$表示第$i$辆乘用车， $i \in \{1 \dots N\}$
+			\item $K$ 为轿运车使用量, $k$表示第$k$轿运车下标,  $k \in \{1 \dots K\}$
+			\item $j$ 轿运车层级， $j \mapsto \{1,2\}$
+			\item $l_i$ 第$i$辆乘用车长度
+			\item $w_i$ 第$i$辆乘用车的宽度
+			\item $h_i$ 第$i$辆乘用车的高度
+			\item $C_k$ 第$k$辆轿运车的运输成本, $C=\sum_{k=1}^{K}C_k$
+			\item $L_{jk}$ 第$k$辆轿运车第$j$层的长度
+			\item $W_{jk}$ 第$k$辆轿运车第$j$层的宽度
+			\item $T_k$ 第$k$辆轿运车的类型， $T_k \mapsto \{1, ~2, ~3\}$
+			\item $d_i$ 第$i$辆车的目的地，$d_i \mapsto \{A, B, C, D\}$		
+			\item 出发地$O$到各目的地的距离所在集合为 $D=\{D_A=360, D_B=280, D_C=216, D_D=160\}$
+		\end{itemize}
+\paragraph{决策变量}
+	\begin{itemize}
+		\item $s_k \mapsto \{0,1\}, ~ k \in K$， 若变量$s_k$为1，则表示第$k$辆轿运车已经被使用；
+		反之，则第$k$辆轿运车未被使用。
+		\item $x_{ijk}\mapsto \{0,1\}, ~ i\in N,~ k \in K,~ j\in \{1,2\}$，若$x_{ijk}$为1，
+		则表示第$i$辆乘用车被分配到了第$k$辆轿运车的第$j$层。
+		\item $dest_k \mapsto \{A,B,C,D\}  ~ k \in K$ $dest_k$表示第$k$辆轿运车被分配的目的地。
+	\end{itemize}
+\paragraph{目标函数}
+			\begin{equation}
+				C \ = \ \sum_{k=1}^{K}C_k \cdot s_k
+			\end{equation}
+	
+\paragraph{约束条件}
+	\begin{itemize}
+		\item 只有当轿运车确定为使用状态时才能为其分配乘用车
+		\begin{equation}
+		 x_{ijk} \leq s_k  \quad 	\forall i,~ j
+		\end{equation}
+		
+		\item 所有乘用车必须被分配给某一轿运车
+		\begin{equation}
+			\sum_{k=1}^{K} \sum_{j=1}^{2} x_{ijk}=1 \quad \forall i
+		\end{equation}
+		
+		\item 1-2的使用数目不得超过1-1使用数目的20\%
+		\begin{equation}
+			\sum_{k=1}^{K} \ s_k[T_k=2] \leq 20\% \cdot \sum_{k=1}^{K}  \ s_k[T_k=1]
+		\end{equation}
+		
+		\item 对于高度超过1.7米的乘用车，只能放在1-1或1-2型轿运车的下层
+		\begin{equation}
+			\forall i \ h_i>1.7 \ \implies \sum_{k=1}^{K}x_{i1k}=0
+		\end{equation}
+		
+		\item 对于任一轿运车的任一层，所包含的乘用车必须能够满足该区域的长宽要求
+		\begin{align}
+		&	\forall k, j \quad  x_{ijk}=1  \implies \notag\\
+		&		 cumulatives(W_{jk}, \{xcoord_i | x_{ijk}=1 \},\{ w_i | x_{ijk}=1\},  \{xcoord_i | x_{ijk}=1 \}, \{l_i | x_{ijk}=1\}, L_{jk}) 
+		\end{align}
+		
+		\item 限制仅目的地为$\{C,~D\}$或$\{D,~B,~A\}$的组合可以出现在同一轿运车
+		\begin{equation}
+			
+		\end{equation}
+		
+		\item 优先级为$D >_{priority} C$， $A >_{priority} B >_{priority} C $
+			\footnote{此次所指优先级应理解为若一辆轿运车同时载有去目的地$C$和$D$，则将轿运车的目的地视为$C$,对于$A,~B,~C$亦同}
+		\begin{equation}
+			\forall i,k \  x_{ijk}=1 \Leftrightarrow 	dest_k \ \geq_{priority} \ d_i
+		\end{equation}
+		
+	\end{itemize}
 
 \subsubsection{问题五模型}
 
