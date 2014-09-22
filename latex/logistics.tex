@@ -9,6 +9,7 @@
 \usepackage{pdfpages}
 \usepackage{fancyhdr}
 \usepackage{placeins}
+\usepackage{titlesec}
 
 
 
@@ -23,6 +24,14 @@
 
 
 \geometry{top=3cm, bottom=3cm, left=2.5cm, right=2.5cm}
+
+\titleformat{\subsection}
+  {\normalfont\fontsize{12}{15}\bfseries}{\thesubsection}{1em}{}
+\titleformat{\subsubsection}
+  {\normalfont\fontsize{12}{15}\bfseries}{\thesubsubsection}{1em}{}
+ \titleformat{\paragraph}
+   {\normalfont\fontsize{12}{15}\bfseries}{\theparagraph}{1em}{}
+
 
 \begin{document}
 %	\forall i \in N ~ \sum_{k=1}^{K}\sum_{j=1}^{2} X_{ijk}=1
