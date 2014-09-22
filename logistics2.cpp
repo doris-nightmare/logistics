@@ -1,5 +1,8 @@
 #include "logistics2.h"
+#include <iostream>
+#include <string>
 
+using namespace std;
 
 const int ncar1 = 156;
 const int ncar2 = 102;
@@ -400,7 +403,26 @@ template<class Script, template<class> class Engine, class Options,
 /* MAIN */
 int main(int argc, char *argv[])
 {
-
+  
+    cout<<"请输入输入文件路径："
+    string path;
+    cin >> path;
+    ifstream file (path);
+    ofstream outfile ("out.csv");
+    input value;
+    if(file.good())
+    {
+     		while(file.good())
+            {
+			cout<<path<<""文件打开了";
+                  getline(file,value,',');
+		}
+    }else
+    {
+		cout<<"文件格式不对，请检查之后再试，按任意键退出"
+            char a;
+            cin >> a;
+    }
     SizeOptions opt("Logistics");
     opt.solutions(0);
 
@@ -416,5 +438,6 @@ int main(int argc, char *argv[])
     //opt.out_file(output.c_str());
 
     ScriptOutput::run<Logistics, BAB, SizeOptions>(opt);
+    outfile.close();
     return 0;
 }
