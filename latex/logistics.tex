@@ -157,8 +157,17 @@ hello
 		
 		\item 1-2的使用数目不得超过1-1使用数目的20\%
 		\begin{equation}
-			\sum_{k=1}^{K} \ s_k[T_k=2] \leq 20\% \cdot s_k[T_k=1]
+			\sum_{k=1}^{K} \ s_k[T_k=2] \leq 20\% \cdot \sum_{k=1}^{K}  \ s_k[T_k=1]
 		\end{equation}
+		
+		\item 对于高度超过1.7米的乘用车，只能放在1-1或1-2型轿运车的下层
+		\begin{equation}
+			\forall i \ h_i>1.7 \ \implies \sum_{k=1}^{K}x_{i1k}=0
+		\end{equation}
+		
+		\item 对于任一轿运车的任一层，所包含的乘用车必须能够
+		
+		
 	\end{itemize}
 
 	
