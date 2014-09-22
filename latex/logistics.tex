@@ -4,6 +4,7 @@
 \usepackage{graphics}
 \usepackage{geometry}
 \usepackage{subcaption}
+\usepackage{mathrsfs}
 
 
 
@@ -107,13 +108,31 @@ hello
 
 \section{问题分析}
 本文的基本问题是解决如何分配乘用车到轿运车并使整体运输成本最低的问题。
-该问题可以抽象为一个多维装箱问题。
-由于多维装箱问题可以看作是组合优化问题( Combinatorial Optimization Problem)，
+经过对问题本身的分析，
+该问题可以看左组合优化问题( Combinatorial Optimization Problem)，
+而组合优化问题从计算复杂度上来看属于NP-困难问题，即在多项式时间内
+无法确定能够找到有效算法求解的问题。
+
 本文拟采用约束编程(Constraint Programming)的思想进行建模与求解。
-约束编程是一种编程范型，在这种编程范型中，变量之间的关系以约束的形式组织。
+
 而对于组合优化的问题，还需列出对应的最大化或者最小化的目标函数。
-由于本文所提乘用车物流运输计划的问题从计算复杂度上来看属于NP-困难，即在多项式时间内
-无法确定能够找到有效算法求解的问题，所以在解决的过程中，引入启发式算法（Heuristics)。
+由于本文所提乘用车物流运输计划的问题从计算复杂度上来看属于NP-困难，所以在解决的过程中，引入启发式算法（Heuristics)。
+
+\subsection{技术背景}
+\subsubsection{约束编程}
+约束编程是一种编程范型，在这种编程范型中，变量之间的关系以约束的形式组织。
+一般地， 
+约束编程的支持通用的求解程序对约束模型进行求解
+\paragraph{Gecode}
+Gecode\cite{gecode}是一个基于c++实现的约束编程模型求解器。
+
+	
+
+
+
+对于本文所提乘用车物流运输计划问题，关键是解决乘用车的分配问题。
+抽象地看，可以有效利用约束编程中cumulative约束
+
 
 \subsection{问题一、二、三分析：}
 问题一、二、三要求计算各种类型轿运车的数量和每辆轿运车的乘用车装载方案，各类型乘用车数量已知，
@@ -165,13 +184,36 @@ hello
 			\forall i \ h_i>1.7 \ \implies \sum_{k=1}^{K}x_{i1k}=0
 		\end{equation}
 		
-		\item 对于任一轿运车的任一层，所包含的乘用车必须能够
+		\item 对于任一轿运车的任一层，所包含的乘用车必须能够满足该区域的长宽要求
+		\begin{align}
+		&	\forall k, j \quad  x_{ijk}=1  \implies \notag\\
+		&		 cumulatives(W_{jk}, \{xcoord_i | x_{ijk}=1 \},\{ w_i | x_{ijk}=1\},  \{xcoord_i | x_{ijk}=1 \}, \{l_i | x_{ijk}=1\}, L_{jk}) 
+		\end{align}
 		
 		
 	\end{itemize}
 
+\paragraph{cumulative约束}
+在约束编程的范型中，cumulative约束是一类可以解决在一定资源情限制清况下任务分配的约束。
+任务用4-元组\textit{(起始时间，持续时间,终止时间,占用资源)}表示，而资源用2-元组\textit{(资源，限制)}表示。
+对于给定的任务集合$\mathscr{T}$，在单资源的情况下，cumulative约束强制在任一时间点，
+任务所占的资源数不超过所限制的阈值，单资源情况下cumulative约束所适用的问题如图\ref{fig:cumulative}所示。\\
+而对于多资源的情况，即对一组资源$\mathscr{R}$和一组任务$\mathscr{T}$，任务必须被
+分配到可用的资源并且对各资源的使用不超过资源的限制。定义多资源情况下的cumulative
+约束原型如下： 
+	\begin{align*}
+	cumulatives( resource, start, duration, end, height, limit)
+	\end{align*}
+根据\cite{cumulatives}中所述思想，cumulatives约束的实现如下：
+
 	
 
+\begin{figure}[h!]
+	\centering
+	\includegraphics[width=0.4\linewidth]{figure/cumulative.png}
+	\caption{cumulative约束}
+	\label{fig:cumulative}
+\end{figure}
 
 
 
@@ -199,7 +241,9 @@ hello
 
 \begin{thebibliography}{1}  % even better: use BibTeX!
 \bibitem{gecode} Gecode Team.  \textit{Gecode}: Generic Constraint
-  Development Environment, 2006.  
+  Development Environment, 2006. 
+  
+\bibitem{cumulatives}Beldiceanu, Nicolas, and Mats Carlsson. "A new multi-resource cumulatives constraint with negative heights." Principles and Practice of Constraint Programming-CP 2002. Springer Berlin Heidelberg, 2002. 
 
 %\bibitem{Search} Simonis, Helmut, and Barry O’Sullivan. "Search strategies for rectangle packing." \emph{Principles and Practice of Constraint Programming.} Springer Berlin Heidelberg, 2008.
 
